@@ -36,6 +36,7 @@ class FakeStore extends StatelessWidget {
             tabs: [
               Tab(icon: Icon(Icons.home), text: 'Home'),
               Tab(icon: Icon(Icons.shopping_cart_sharp), text: 'Shopping Cart'),
+              Tab(icon: Icon(Icons.document_scanner_sharp), text: 'My Orders')
             ],
           ),
         ),
