@@ -8,6 +8,8 @@ class ProductProvider extends ChangeNotifier {
   bool isLoading = false;
   List<Product> product = [];
   List<Product> cartProducts = [];
+  List<Product> filteredProducts =
+      []; // Lista para almacenar los productos filtrados
 
   Future<void> fetchProduct() async {
     isLoading = true;
@@ -19,17 +21,36 @@ class ProductProvider extends ChangeNotifier {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         product = (data as List).map((item) => Product.fromJson(item)).toList();
+        filteredProducts =
+            product; // Por defecto, mostramos todos los productos
       } else {
         print('Error ${response.statusCode}');
         product = [];
+        filteredProducts = [];
       }
     } catch (e) {
       print('Error in request: $e');
       product = [];
+      filteredProducts = [];
     } finally {
       isLoading = false;
       notifyListeners();
     }
+  }
+
+  // Función para filtrar los productos
+  void filterProducts(String query) {
+    if (query.isEmpty) {
+      filteredProducts =
+          product; // Si la búsqueda está vacía, mostramos todos los productos
+    } else {
+      filteredProducts = product
+          .where((product) => product.title
+              .toLowerCase()
+              .contains(query.toLowerCase())) // Filtramos por título
+          .toList();
+    }
+    notifyListeners(); // Notificamos que la lista ha cambiado
   }
 
   Future<void> toggleCartStatus(Product product) async {

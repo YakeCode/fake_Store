@@ -3,7 +3,7 @@ import 'package:store/app/models/model_product.dart';
 import 'package:store/app/screens/product/product_detail.dart';
 
 class ProductCard extends StatelessWidget {
-  final Product product; // Cambiar tipo a Product para mantener consistencia
+  final Product product;
   const ProductCard({super.key, required this.product});
 
   @override
@@ -12,7 +12,6 @@ class ProductCard extends StatelessWidget {
       padding: const EdgeInsets.all(12.0),
       child: GestureDetector(
         onTap: () {
-          // Navegación a ProductDetail al hacer tap
           Navigator.push(
             context,
             MaterialPageRoute(

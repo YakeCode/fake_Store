@@ -32,13 +32,13 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context, provider, child) {
             if (provider.isLoading) {
               return const Center(child: CircularProgressIndicator());
-            } else if (provider.product.isEmpty) {
+            } else if (provider.filteredProducts.isEmpty) {
               return const Center(child: Text('No products found'));
             } else {
               return ListView.builder(
-                itemCount: provider.product.length,
+                itemCount: provider.filteredProducts.length,
                 itemBuilder: (context, index) {
-                  return ProductCard(product: provider.product[index]);
+                  return ProductCard(product: provider.filteredProducts[index]);
                 },
               );
             }
