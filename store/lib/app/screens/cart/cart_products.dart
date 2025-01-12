@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:store/app/models/model_product.dart';
 import 'package:store/app/providers/provider.dart';
-import 'package:store/app/screens/product/product_detail.dart';
+import 'package:store/app/screens/cart/card_in_cart.dart';
 
 class CartProducts extends StatelessWidget {
   const CartProducts({super.key});
@@ -14,97 +13,105 @@ class CartProducts extends StatelessWidget {
       body: Consumer<ProductProvider>(
         builder: (context, productProvider, child) {
           final cartProducts = productProvider.cartProducts;
-          return cartProducts.isEmpty
-              ? Center(
-                  child: const Text('No products in cart'),
-                )
-              : ListView.builder(
-                  itemCount: cartProducts.length,
-                  itemBuilder: (context, index) {
-                    final product = cartProducts[index];
-                    return ProductInCart(product: product);
-                  },
-                );
-        },
-      ),
-    );
-  }
-}
-
-class ProductInCart extends StatelessWidget {
-  final Product product;
-  const ProductInCart({super.key, required this.product});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProductDetail(productData: product),
-          ),
-        );
-      },
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Container(
-          width: MediaQuery.of(context).size.width,
-          height: 125,
-          child: Card(
-            elevation: 4,
-            child: Row(
-              children: <Widget>[
-                Container(
-                  height: 125,
-                  width: 100,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
-                    child: Image.network(
-                      product.images.isNotEmpty ? product.images[0] : '',
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+          final double totalPrice =
+              cartProducts.fold(0, (sum, product) => sum + product.price);
+          return Column(
+            children: [
+              Expanded(
+                child: cartProducts.isEmpty
+                    ? const Center(
+                        child: Text('No products in cart'),
+                      )
+                    : ListView.builder(
+                        itemCount: cartProducts.length,
+                        itemBuilder: (context, index) {
+                          final product = cartProducts[index];
+                          return ProductCardInCart(product: product);
+                        },
+                      ),
+              ),
+              Container(
+                color: Colors.black87,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 14.0,
+                  horizontal: 24.0,
                 ),
-                const SizedBox(width: 16),
-                Flexible(
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 13.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          product.title,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontFamily: 'Quicksand',
+                      children: [
+                        const Text(
+                          "Total to pay:",
+                          style: TextStyle(
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 2,
                         ),
-                        const SizedBox(height: 4),
-                        Container(
-                          height: 1,
-                          width: 75,
-                          color: Colors.blueGrey,
+                        SizedBox(
+                          height: 8,
                         ),
-                        Text(
-                          '\$ ${product.price}',
-                          style: const TextStyle(
-                            fontSize: 15,
-                            color: Colors.teal,
+                        RichText(
+                          text: TextSpan(
+                            text: "Total Products: ",
+                            style: const TextStyle(
+                                fontSize: 15, color: Colors.white),
+                            children: [
+                              TextSpan(
+                                text: "${cartProducts.length}",
+                                style: const TextStyle(
+                                  color: Colors.teal,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          "\$ ${totalPrice.toStringAsFixed(2)}",
+                          style: const TextStyle(
+                            fontSize: 18,
+                            color: Colors.teal,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        SizedBox(
+                          width: 140,
+                          height: 30,
+                          child: ElevatedButton(
+                            onPressed: () {},
+                            style: ElevatedButton.styleFrom(
+                              side: const BorderSide(color: Colors.teal),
+                              backgroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text(
+                              "Buy Now",
+                              style: TextStyle(
+                                color: Colors.teal,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-        ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

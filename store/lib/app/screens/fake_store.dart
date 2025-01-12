@@ -29,13 +29,13 @@ class FakeStore extends StatelessWidget {
             ],
           ),
           bottom: const TabBar(
-            indicatorWeight: 6,
+            indicatorWeight: 4,
             indicatorColor: Colors.teal,
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white,
             tabs: [
               Tab(icon: Icon(Icons.home), text: 'Home'),
-              Tab(icon: Icon(Icons.shopping_cart_sharp), text: 'Card'),
+              Tab(icon: Icon(Icons.shopping_cart_sharp), text: 'Shopping Cart'),
             ],
           ),
         ),
