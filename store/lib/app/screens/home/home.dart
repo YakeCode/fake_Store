@@ -24,6 +24,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+
     return DefaultTabController(
       length: 4,
       child: Scaffold(
@@ -35,12 +37,37 @@ class _HomeScreenState extends State<HomeScreen> {
             } else if (provider.filteredProducts.isEmpty) {
               return const Center(child: Text('No products found'));
             } else {
-              return ListView.builder(
-                itemCount: provider.filteredProducts.length,
-                itemBuilder: (context, index) {
-                  return ProductCard(product: provider.filteredProducts[index]);
-                },
-              );
+              if (screenWidth >= 548) {
+                return SingleChildScrollView(
+                  child: Center(
+                    child: Wrap(
+                      alignment: WrapAlignment.center,
+                      //spacing: 20, // Espacio horizontal entre cards
+                      runSpacing: 20, // Espacio vertical entre filas
+                      children: List.generate(
+                        provider.filteredProducts.length,
+                        (index) => ProductCardResponsive(
+                          product: provider.filteredProducts[index],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              } else {
+                return ListView.builder(
+                  itemCount: provider.filteredProducts.length,
+                  itemBuilder: (context, index) {
+                    return Column(
+                      children: [
+                        ProductCardMobile(
+                          product: provider.filteredProducts[index],
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                    );
+                  },
+                );
+              }
             }
           },
         ),
