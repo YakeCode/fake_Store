@@ -5,86 +5,129 @@ import 'package:http/http.dart' as http;
 import 'package:store/app/models/model_product.dart';
 
 class ProductProvider extends ChangeNotifier {
+  // Properties
   bool isLoading = false;
   List<Product> product = [];
   List<Product> cartProducts = [];
-  List<Product> filteredProducts =
-      []; // Lista para almacenar los productos filtrados
+  List<Product> filteredProducts = [];
 
+  // API endpoints
+  static const String _baseUrl = 'https://api.escuelajs.co/api/v1';
+  static const String _productsEndpoint = '$_baseUrl/products';
+  static const String _cartEndpoint = '$_baseUrl/products/cart';
+
+  // Image validation methods
+  Future<bool> isValidImageUrl(String url) async {
+    try {
+      final response = await http.head(Uri.parse(url));
+      final contentType = response.headers['content-type'];
+
+      return response.statusCode == 200 &&
+          contentType != null &&
+          contentType.toLowerCase().startsWith('image/');
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> hasValidImages(Product product) async {
+    if (product.images.isEmpty) return false;
+
+    for (String imageUrl in product.images) {
+      if (!(await isValidImageUrl(imageUrl))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Product fetching and filtering methods
   Future<void> fetchProduct() async {
     isLoading = true;
     notifyListeners();
 
-    final url = Uri.parse('https://api.escuelajs.co/api/v1/products');
     try {
-      final response = await http.get(url);
+      final response = await http.get(Uri.parse(_productsEndpoint));
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        product = (data as List).map((item) => Product.fromJson(item)).toList();
-        filteredProducts =
-            product; // Por defecto, mostramos todos los productos
-      } else {
-        print('Error ${response.statusCode}');
+        final allProducts =
+            (data as List).map((item) => Product.fromJson(item)).toList();
+
         product = [];
-        filteredProducts = [];
+        for (var prod in allProducts) {
+          if (await hasValidImages(prod)) {
+            product.add(prod);
+          }
+        }
+
+        filteredProducts = product;
+      } else {
+        _handleError('Error ${response.statusCode}');
       }
     } catch (e) {
-      print('Error in request: $e');
-      product = [];
-      filteredProducts = [];
+      _handleError('Error in request: $e');
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 
-  // Función para filtrar los productos
   void filterProducts(String query) {
     if (query.isEmpty) {
-      filteredProducts =
-          product; // Si la búsqueda está vacía, mostramos todos los productos
+      filteredProducts = product;
     } else {
       filteredProducts = product
-          .where((product) => product.title
-              .toLowerCase()
-              .contains(query.toLowerCase())) // Filtramos por título
+          .where((product) =>
+              product.title.toLowerCase().contains(query.toLowerCase()))
           .toList();
     }
-    notifyListeners(); // Notificamos que la lista ha cambiado
+    notifyListeners();
   }
 
+  // Cart management methods
   Future<void> toggleCartStatus(Product product) async {
     final isProductInCart = cartProducts.contains(product);
 
     try {
-      final urlCart =
-          Uri.parse('https://api.escuelajs.co/api/v1/products/cart');
-
-      // Si el producto está en el carrito, eliminarlo
       if (isProductInCart) {
-        await http.delete(
-          urlCart,
-          body:
-              jsonEncode({'id': product.id}), // Enviar solo el id del producto
-        );
-        cartProducts.remove(product); // Eliminar solo el producto seleccionado
+        await _removeFromCart(product);
       } else {
-        // Si no está en el carrito, añadirlo
-        await http.post(
-          urlCart,
-          body: jsonEncode({
-            'id': product.id, // Mandamos el id del producto
-            'title': product.title, // Mandamos todos los campos que necesitas
-            'price': product.price,
-            'description': product.description,
-            'images': product.images, // Mandamos las imágenes si es necesario
-          }),
-        );
-        cartProducts.add(product); // Agregar solo el producto seleccionado
+        await _addToCart(product);
       }
+
       notifyListeners();
     } catch (e) {
-      print('Error al actualizar estado del carrito: $e');
+      _handleError('Error al actualizar estado del carrito: $e');
     }
+  }
+
+  // Helper methods
+  Future<void> _addToCart(Product product) async {
+    await http.post(
+      Uri.parse(_cartEndpoint),
+      body: jsonEncode({
+        'id': product.id,
+        'title': product.title,
+        'price': product.price,
+        'description': product.description,
+        'images': product.images,
+      }),
+    );
+    cartProducts.add(product);
+  }
+
+  Future<void> _removeFromCart(Product product) async {
+    await http.delete(
+      Uri.parse(_cartEndpoint),
+      body: jsonEncode({'id': product.id}),
+    );
+    cartProducts.remove(product);
+  }
+
+  void _handleError(String errorMessage) {
+    print(errorMessage);
+    product = [];
+    filteredProducts = [];
   }
 }
